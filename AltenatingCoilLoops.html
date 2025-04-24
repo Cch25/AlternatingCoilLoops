@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alternating Coil Loops</title>
+  <style>
+  body{
+	margin:0;
+	padding:0;
+  }
+  canvas { 
+    overflow: hidden; 
+  }
+  </style>
+</head>
+<body>
+  <canvas id="myCanvas"  ></canvas>
+  <script>
+    const canvas = document.getElementById('myCanvas');
+	canvas.width = window.innerWidth - 50;
+	canvas.height = window.innerHeight - 50;
+    const ctx    = canvas.getContext('2d');
+
+    // Wiggle amplitudes & circle radius
+    const a = 25;
+    const b = 15;
+    const R = 50;
+
+    const cx = canvas.width  / 2;
+    const cy = canvas.height / 2;
+
+    const dt = 0.05;       // sampling step
+    const speed = 5;      // speed multiplier
+
+    // Loop counts to alternate between
+    const loopCounts = [4, 7];
+    let loopIndex = 0;     // start with 4
+
+    let N = loopCounts[loopIndex];
+    let tMax = 2 * Math.PI * N;
+    let tOffset = 0;
+
+    function drawFrame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+
+      let first = true;
+      for (let t = 0; t <= tOffset; t += dt) {
+        const tLoop = t % tMax;
+        const phi     = (tLoop / tMax) * 2 * Math.PI;
+
+        const offsX = a * Math.sin(tLoop);
+        const offsY = b * Math.cos(tLoop);
+
+        const tx = -Math.sin(phi);
+        const ty = Math.cos(phi);
+        const nx = Math.cos(phi);
+		const ny = Math.sin(phi);
+
+        const bx = cx + R * Math.cos(phi);
+        const by = cy + R * Math.sin(phi);
+
+        const x  = bx + offsX * tx + offsY * nx;
+        const y  = by + offsX * ty + offsY * ny;
+
+        if (first) {
+          ctx.moveTo(x, y);
+          first = false;
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth   = 4;
+      ctx.stroke();
+
+      // advance
+      tOffset += dt * speed;
+
+      // if one full coil drawn, swap N and reset
+      if (tOffset > tMax) {
+        tOffset = 0;
+        // toggle loop count
+        loopIndex = (loopIndex + 1) % loopCounts.length;
+        N = loopCounts[loopIndex];
+        tMax = 2 * Math.PI * N;
+      }
+
+      requestAnimationFrame(drawFrame);
+    }
+
+    drawFrame();
+  </script>
+</body>
+</html>
